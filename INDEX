@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hallazgos & TPM — Agripac</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--bg-sec:#f5f5f3;--bg-ter:#eeede9;--text:#1a1a18;--text-sec:#6b6b68;--border:rgba(0,0,0,0.12);--border-s:rgba(0,0,0,0.22);--r:8px;--rl:12px;--amber:#BA7517;--teal:#0F6E56;--teal-m:#1D9E75;--red:#A32D2D}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg-ter);color:var(--text);min-height:100vh;font-size:14px}
+.app{max-width:680px;margin:0 auto;padding:1rem}
+.hdr{display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:1rem;border-bottom:0.5px solid var(--border)}
+.hdr-icon{width:40px;height:40px;background:#FAEEDA;border-radius:var(--r);display:flex;align-items:center;justify-content:center;color:var(--amber);font-size:20px;flex-shrink:0}
+.hdr h1{font-size:16px;font-weight:500}.hdr p{font-size:11px;color:var(--text-sec);margin-top:2px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;margin-left:auto;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:var(--teal-m)}.sync-dot.err{background:var(--red)}.sync-dot.loading{background:var(--amber)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:1rem}
+.sc{background:var(--bg-sec);border-radius:var(--r);padding:.6rem;text-align:center}
+.sc-n{font-size:20px;font-weight:500;line-height:1}.sc-l{font-size:10px;color:var(--text-sec);margin-top:3px}
+.n-amb{color:var(--amber)}.n-red{color:var(--red)}.n-teal{color:var(--teal-m)}.n-gry{color:var(--text-sec)}
+.tabs{display:flex;gap:3px;background:var(--bg-sec);border-radius:var(--r);padding:3px;margin-bottom:1rem}
+.tab{flex:1;padding:6px 2px;font-size:10px;font-weight:500;border:none;background:transparent;cursor:pointer;border-radius:6px;color:var(--text-sec);transition:all .12s;display:flex;align-items:center;justify-content:center;gap:3px;line-height:1.2}
+.tab.active{background:var(--bg);color:var(--text);border:0.5px solid var(--border)}
+.tab i{font-size:13px;flex-shrink:0}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1rem;margin-bottom:.75rem}
+.ct{font-size:13px;font-weight:500;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ct i{font-size:14px;color:var(--text-sec);margin-right:4px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.fg label{font-size:11px;color:var(--text-sec);display:block;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;font-size:12px;padding:6px 9px;border:0.5px solid var(--border);border-radius:var(--r);background:var(--bg-sec);color:var(--text);font-family:inherit}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+.highlight-field input{border-color:var(--amber);background:#FFFBF2}
+.highlight-field label{color:var(--amber);font-weight:500}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:9px}
+.cat-btn{padding:8px 4px;border:0.5px solid var(--border);border-radius:var(--r);background:var(--bg);cursor:pointer;font-size:10px;text-align:center;color:var(--text-sec);display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.3;transition:all .12s;word-break:break-word}
+.cat-btn i{font-size:16px}
+.sev-row{display:flex;gap:6px;margin-bottom:9px}
+.sev-btn{flex:1;padding:6px 3px;border:0.5px solid var(--border);border-radius:var(--r);background:var(--bg);cursor:pointer;font-size:10px;font-weight:500;text-align:center;color:var(--text-sec);transition:all .12s}
+.s-alta{background:#FCEBEB;border-color:#E24B4A;color:#A32D2D;border-width:1.5px}
+.s-media{background:#FAEEDA;border-color:#EF9F27;color:#BA7517;border-width:1.5px}
+.s-baja{background:#EAF3DE;border-color:#639922;color:#3B6D11;border-width:1.5px}
+.btn{padding:7px 13px;border:0.5px solid var(--border-s);border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;background:var(--bg);color:var(--text);transition:all .12s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:inherit}
+.btn.full{width:100%;justify-content:center}
+.btn.acc{background:var(--amber);border-color:var(--amber);color:#fff}.btn.acc:hover{background:#854F0B}
+.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn.ghost{border-color:var(--border);color:var(--text-sec)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.info-box{background:#E6F1FB;border:0.5px solid #B5D4F4;border-radius:var(--r);padding:7px 11px;font-size:11px;color:#185FA5;display:flex;align-items:flex-start;gap:6px;line-height:1.5;margin-bottom:9px}
+.badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.b-alta{background:#FCEBEB;color:#A32D2D}.b-media{background:#FAEEDA;color:#BA7517}.b-baja{background:#EAF3DE;color:#3B6D11}
+.b-pend{background:#FAEEDA;color:#BA7517}.b-proc{background:#E6F1FB;color:#185FA5}.b-cerr{background:#EAF3DE;color:#3B6D11}
+.b-esc{background:#FCEBEB;color:#A32D2D;border:0.5px solid #E24B4A}
+.orden-badge{background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:var(--r);padding:3px 8px;font-size:10px;font-weight:500;color:#BA7517;display:inline-flex;align-items:center;gap:4px}
+.h-item{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:.85rem;margin-bottom:7px}
+.h-title{font-size:13px;font-weight:500}.h-desc{font-size:11px;color:var(--text-sec);margin-top:3px;line-height:1.4}
+.h-meta{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:center}
+.h-reporter{font-size:10px;color:var(--text-sec);margin-top:4px}
+.h-acts{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.a-btn{padding:3px 8px;border:0.5px solid var(--border);border-radius:var(--r);font-size:10px;cursor:pointer;background:var(--bg-sec);color:var(--text-sec);display:inline-flex;align-items:center;gap:3px;font-family:inherit}
+.a-btn i{font-size:11px}
+.tpm-item{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:.9rem;margin-bottom:8px}
+.tpm-title{font-size:13px;font-weight:500}.tpm-sub{font-size:11px;color:var(--text-sec);margin-top:2px;line-height:1.4}
+.tpm-acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.min-item{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.min-item:last-child{border-bottom:none;padding-bottom:0}
+.min-num{width:20px;height:20px;min-width:20px;background:var(--bg-sec);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--text-sec)}
+.min-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.min-field label{font-size:10px;color:var(--text-sec);display:block;margin-bottom:2px}
+.min-field input{width:100%;font-size:11px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--r);background:var(--bg-sec);color:var(--text);font-family:inherit}
+.seg-item{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:.85rem;margin-bottom:7px}
+.pb-wrap{height:5px;background:var(--bg-sec);border-radius:3px;overflow:hidden;margin-top:7px}
+.pb{height:100%;background:var(--teal-m);border-radius:3px;transition:width .4s}
+.st-btns{display:flex;gap:5px;margin-top:7px}
+.st-btn{padding:3px 10px;border:0.5px solid var(--border);border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-sec);font-family:inherit}
+.st-pend{background:#FAEEDA;border-color:#EF9F27;color:#BA7517}
+.st-proc{background:#E6F1FB;border-color:#378ADD;color:#185FA5}
+.st-cerr{background:#EAF3DE;border-color:#639922;color:#3B6D11}
+.photo-zone{border:0.5px dashed var(--border-s);border-radius:var(--r);padding:10px;text-align:center;cursor:pointer;margin-bottom:8px}
+.photo-zone i{font-size:20px;color:var(--text-sec)}.photo-zone p{font-size:11px;color:var(--text-sec);margin-top:4px}
+.photo-previews{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ph-wrap{position:relative;width:62px;height:62px;flex-shrink:0}
+.ph-wrap img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);border:0.5px solid var(--border)}
+.del-ph{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center}
+.photo-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.ph-sm{width:48px;height:48px;object-fit:cover;border-radius:var(--r);border:0.5px solid var(--border)}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--teal);color:#fff;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;transition:transform .2s;z-index:999;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}.toast.warn{background:var(--amber)}.toast.err{background:var(--red)}
+.loader{text-align:center;padding:3rem 1rem;color:var(--text-sec)}
+.loader i{font-size:28px;display:block;margin-bottom:.5rem}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text-sec)}
+.empty i{font-size:26px;display:block;margin-bottom:.5rem;opacity:.35}.empty p{font-size:12px}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.field-label{font-size:11px;color:var(--text-sec);display:block;margin-bottom:5px}
+@media(max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}.frow{grid-template-columns:1fr}.sev-row{flex-direction:column}.tpm-acts{flex-direction:column}.min-fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div class="hdr-icon"><i class="ti ti-building-warehouse"></i></div>
+    <div>
+      <h1>Almacén de Granos — Hallazgos &amp; TPM</h1>
+      <p>Levantamiento · Mantenimiento autónomo · Seguimiento</p>
+    </div>
+    <div class="sync-dot loading" id="syncDot" title="Estado de conexión"></div>
+  </div>
+  <div class="stats">
+    <div class="sc"><div class="sc-n n-amb" id="s-tot">—</div><div class="sc-l">Hallazgos</div></div>
+    <div class="sc"><div class="sc-n n-red" id="s-alt">—</div><div class="sc-l">Alta prioridad</div></div>
+    <div class="sc"><div class="sc-n n-teal" id="s-tpm">—</div><div class="sc-l">TPM activos</div></div>
+    <div class="sc"><div class="sc-n n-gry" id="s-esc">—</div><div class="sc-l">Escalados</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('lev')"><i class="ti ti-clipboard-plus"></i>Levantar</button>
+    <button class="tab" onclick="switchTab('tpm')"><i class="ti ti-tool"></i>TPM</button>
+    <button class="tab" onclick="switchTab('lis')"><i class="ti ti-list"></i>Hallazgos</button>
+    <button class="tab" onclick="switchTab('min')"><i class="ti ti-notes"></i>Minuta</button>
+    <button class="tab" onclick="switchTab('seg')"><i class="ti ti-chart-line"></i>Seguimiento</button>
+  </div>
+  <div id="content"><div class="loader"><i class="ti ti-loader-2 spin"></i><p>Conectando con Firebase...</p></div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── Config Firebase ───────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyD9FOS_cyPTyfUoQWaomJID8yXZKeZLY3o",
+  authDomain: "precintos-40bdc.firebaseapp.com",
+  databaseURL: "https://precintos-40bdc-default-rtdb.firebaseio.com",
+  projectId: "precintos-40bdc",
+  storageBucket: "precintos-40bdc.firebasestorage.app",
+  messagingSenderId: "530990140077",
+  appId: "1:530990140077:web:26f0f5e7717bf45632d424"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+
+// ── Estado ────────────────────────────────────────────────────
+const CATS = [
+  {id:"maq", nombre:"Fallo en máquina",    icono:"engine",             color:0, modulo:"Mantenimiento"},
+  {id:"fuga",nombre:"Fuga de producto",    icono:"droplet-off",        color:1, modulo:"Operaciones"},
+  {id:"est", nombre:"Estructura dañada",   icono:"building-arch",      color:2, modulo:"Infraestructura"},
+  {id:"res", nombre:"Material de desalojo",icono:"recycle",            color:3, modulo:"Ambiental"},
+  {id:"seg", nombre:"Riesgo de seguridad", icono:"shield-exclamation", color:4, modulo:"Seguridad"},
+  {id:"lim", nombre:"Limpieza / Orden",    icono:"trash",              color:5, modulo:"Operaciones"},
+];
+const COLORS=[
+  {bg:"#FAECE7",border:"#D85A30",text:"#993C1D",dot:"#D85A30"},
+  {bg:"#E6F1FB",border:"#378ADD",text:"#185FA5",dot:"#378ADD"},
+  {bg:"#FAEEDA",border:"#EF9F27",text:"#BA7517",dot:"#EF9F27"},
+  {bg:"#EAF3DE",border:"#639922",text:"#3B6D11",dot:"#639922"},
+  {bg:"#FCEBEB",border:"#E24B4A",text:"#A32D2D",dot:"#E24B4A"},
+  {bg:"#F1EFE8",border:"#888780",text:"#5F5E5A",dot:"#888780"},
+];
+const ZONAS=["Bodega Norte","Bodega Sur","Bodega Central","Área de carga","Tolvas","Silos exteriores","Pasillo principal","Oficinas"];
+const TURNOS=["Turno A — Mañana","Turno B — Tarde","Turno C — Noche"];
+const TIPOS_TPM=["Lubricación","Limpieza técnica","Inspección visual","Ajuste de tornillería","Verificación de fajas","Revisión eléctrica básica","Purga / drenaje","Calibración simple","Otro"];
+
+let S = { hallazgos:{}, tpm:{}, tab:"lev", selCat:"", selSev:"", levFotos:[], tpmAntes:[], tpmDespues:{} };
+
+// ── Firebase listeners en tiempo real ─────────────────────────
+const syncDot = document.getElementById("syncDot");
+
+onValue(ref(db,"hallazgos"), snap => {
+  S.hallazgos = snap.val() || {};
+  syncDot.className = "sync-dot ok";
+  if(S.tab==="lis"||S.tab==="min"||S.tab==="seg") renderTab(S.tab);
+  updateStats();
+}, err => { syncDot.className="sync-dot err"; toast("Error Firebase: "+err.message,"err"); });
+
+onValue(ref(db,"tpm"), snap => {
+  S.tpm = snap.val() || {};
+  if(S.tab==="tpm"||S.tab==="min"||S.tab==="seg") renderTab(S.tab);
+  updateStats();
+});
+
+// ── Helpers ───────────────────────────────────────────────────
+let toastT;
+function toast(msg,tipo="ok"){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.className="toast show"+(tipo!=="ok"?" "+tipo:"");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2500);
+}
+function hoy(){return new Date().toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"})}
+function ahora(){return new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}
+function arr(obj){return obj?Object.entries(obj).map(([k,v])=>({...v,_key:k})).reverse():[]}
+function catColor(catId){const c=CATS.find(x=>x.id===catId);return c?COLORS[c.color]||COLORS[5]:COLORS[5]}
+function catNombre(catId){const c=CATS.find(x=>x.id===catId);return c?c.nombre:"—"}
+function bSev(p){const m={alta:"b-alta",media:"b-media",baja:"b-baja"};return`<span class="badge ${m[p]||''}">${p||""}</span>`}
+function bEst(e){const m={Pendiente:"b-pend","En proceso":"b-proc",Cerrado:"b-cerr",Finalizado:"b-cerr",Escalado:"b-esc"};return`<span class="badge ${m[e]||"b-pend"}">${e}</span>`}
+function thumbs(a){if(!a||!a.length)return"";return`<div class="photo-row">${a.map(s=>`<img class="ph-sm" src="${s}">`).join("")}</div>`}
+
+function updateStats(){
+  const hs=arr(S.hallazgos), ts=arr(S.tpm);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set("s-tot",hs.length);
+  set("s-alt",hs.filter(h=>h.prioridad==="alta").length);
+  set("s-tpm",ts.filter(t=>t.estado==="En curso").length);
+  set("s-esc",ts.filter(t=>t.escalado===true).length);
+}
+
+function switchTab(tab){
+  S.tab=tab;
+  document.querySelectorAll(".tab").forEach((b,i)=>{
+    b.classList.toggle("active",["lev","tpm","lis","min","seg"][i]===tab);
+  });
+  renderTab(tab);
+}
+
+function renderTab(tab){
+  const el=document.getElementById("content");
+  if(tab==="lev") el.innerHTML=renderLevantar();
+  else if(tab==="tpm"){el.innerHTML=renderTPM();bindTPMEvents()}
+  else if(tab==="lis") el.innerHTML=renderHallazgos();
+  else if(tab==="min") el.innerHTML=renderMinuta();
+  else if(tab==="seg") el.innerHTML=renderSeguimiento();
+  if(tab==="lev") bindLevEvents();
+}
+
+// ── LEVANTAR ──────────────────────────────────────────────────
+function renderLevantar(){
+  const catHtml=CATS.map(c=>{
+    const col=COLORS[c.color];const sel=S.selCat===c.id;
+    return`<button class="cat-btn" data-cat="${c.id}" style="${sel?`border-color:${col.border};background:${col.bg};color:${col.text};border-width:1.5px`:""}">
+      <i class="ti ti-${c.icono}" style="color:${sel?col.text:col.dot}"></i>${c.nombre}</button>`;
+  }).join("");
+  const zonaOpts=ZONAS.map(z=>`<option>${z}</option>`).join("");
+  const turnoOpts=TURNOS.map(t=>`<option>${t}</option>`).join("");
+  const prevHtml=S.levFotos.map((s,i)=>`<div class="ph-wrap"><img src="${s}"><button class="del-ph" data-idx="${i}">✕</button></div>`).join("");
+  return`
+  <div class="card">
+    <div class="ct"><i class="ti ti-user-check"></i>¿Quién reporta?</div>
+    <div class="frow">
+      <div class="fg"><label>Nombre del operador</label><input id="reporta" placeholder="Tu nombre..."></div>
+      <div class="fg"><label>Turno</label><select id="turno"><option value="">Seleccionar...</option>${turnoOpts}</select></div>
+    </div>
+    <div class="frow">
+      <div class="fg highlight-field"><label><i class="ti ti-file-description" style="font-size:11px"></i> N° de orden / Solicitud</label><input id="norden" placeholder="Ej: 052358" style="font-weight:500;letter-spacing:1px"></div>
+      <div class="fg"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><i class="ti ti-tag"></i>Tipo de hallazgo</div>
+    <div class="cat-grid" id="catGrid">${catHtml}</div>
+  </div>
+  <div class="card">
+    <div class="ct"><i class="ti ti-info-circle"></i>Detalle del hallazgo</div>
+    <div class="frow">
+      <div class="fg"><label>Zona / Área</label><select id="zona"><option value="">Seleccionar...</option>${zonaOpts}</select></div>
+      <div class="fg"><label>Equipo / Elemento</label><input id="equipo" placeholder="Ej: Elevador #3..."></div>
+    </div>
+    <div class="fg" style="margin-bottom:9px"><label>Descripción</label><textarea id="desc" placeholder="Qué falla, dónde, condición actual..."></textarea></div>
+    <div class="fg" style="margin-bottom:9px"><label>Acción requerida</label>
+      <select id="accion"><option value="">Seleccionar...</option>
+        <option>Mantenimiento correctivo</option><option>Mantenimiento preventivo</option>
+        <option>Recolección / Tratamiento ambiental</option><option>Limpieza y orden</option>
+        <option>Evaluación estructural</option><option>Gestión ambiental externa</option>
+      </select>
+    </div>
+    <span class="field-label">Prioridad</span>
+    <div class="sev-row" id="sevRow">
+      <button class="sev-btn" data-sev="alta">🔴 Alta — Detener</button>
+      <button class="sev-btn" data-sev="media">🟡 Media — Esta semana</button>
+      <button class="sev-btn" data-sev="baja">🟢 Baja — Programar</button>
+    </div>
+    <span class="field-label"><i class="ti ti-camera" style="font-size:12px"></i> Evidencia fotográfica</span>
+    <div class="photo-zone" id="phZone"><input type="file" id="ph-lev" accept="image/*" multiple style="display:none"><i class="ti ti-photo-plus"></i><p>Toca para agregar fotos</p></div>
+    <div class="photo-previews" id="prevLev">${prevHtml}</div>
+    <div class="info-box" style="margin-top:9px"><i class="ti ti-info-circle"></i>Responsable y fecha de cierre se definen en la <strong>Minuta</strong>.</div>
+    <button class="btn acc full" id="btnGuardar"><i class="ti ti-circle-plus"></i>Registrar hallazgo</button>
+  </div>`;
+}
+
+function bindLevEvents(){
+  document.querySelectorAll(".cat-btn").forEach(b=>{
+    b.addEventListener("click",()=>{S.selCat=b.dataset.cat;renderTab("lev")});
+  });
+  document.querySelectorAll(".sev-btn").forEach(b=>{
+    b.addEventListener("click",()=>{
+      document.querySelectorAll(".sev-btn").forEach(x=>x.classList.remove("s-alta","s-media","s-baja"));
+      b.classList.add("s-"+b.dataset.sev); S.selSev=b.dataset.sev;
+    });
+  });
+  document.getElementById("phZone")?.addEventListener("click",()=>document.getElementById("ph-lev").click());
+  document.getElementById("ph-lev")?.addEventListener("change",e=>addFotos(e,"lev"));
+  document.querySelectorAll(".del-ph").forEach(b=>{
+    b.addEventListener("click",()=>{S.levFotos.splice(parseInt(b.dataset.idx),1);renderTab("lev")});
+  });
+  document.getElementById("btnGuardar")?.addEventListener("click",guardarHallazgo);
+}
+
+async function guardarHallazgo(){
+  const reporta=document.getElementById("reporta")?.value.trim();
+  if(!reporta){toast("Ingresa quién reporta","warn");return}
+  if(!S.selCat){toast("Selecciona el tipo de hallazgo","warn");return}
+  if(!S.selSev){toast("Selecciona la prioridad","warn");return}
+  const zona=document.getElementById("zona")?.value;
+  const desc=document.getElementById("desc")?.value.trim();
+  if(!zona){toast("Selecciona la zona","warn");return}
+  if(!desc){toast("Describe el hallazgo","warn");return}
+  const btn=document.getElementById("btnGuardar");
+  btn.disabled=true;btn.innerHTML=`<i class="ti ti-loader-2 spin"></i>Guardando en Firebase...`;
+  const norden=document.getElementById("norden")?.value.trim()||"";
+  const row={
+    fecha:hoy(), isoFecha:new Date().toISOString(),
+    reportadoPor:reporta, turno:document.getElementById("turno")?.value||"",
+    nOrden:norden,
+    cat:S.selCat, catNombre:catNombre(S.selCat),
+    zona, equipo:document.getElementById("equipo")?.value.trim()||"",
+    descripcion:desc, accion:document.getElementById("accion")?.value||"",
+    prioridad:S.selSev, estatus:"Pendiente",
+    responsable:"", fechaCierre:"",
+    fotos:S.levFotos.length>0?S.levFotos:[],
+  };
+  try{
+    await push(ref(db,"hallazgos"),row);
+    S.selCat="";S.selSev="";S.levFotos=[];
+    toast("✓ Hallazgo guardado en Firebase");
+    renderTab("lev");
+  }catch(e){
+    toast("Error: "+e.message,"err");
+    btn.disabled=false;btn.innerHTML=`<i class="ti ti-circle-plus"></i>Registrar hallazgo`;
+  }
+}
+
+// ── TPM ───────────────────────────────────────────────────────
+function renderTPM(){
+  const turnoOpts=TURNOS.map(t=>`<option>${t}</option>`).join("");
+  const tipoOpts=TIPOS_TPM.map(t=>`<option>${t}</option>`).join("");
+  const prevHtml=S.tpmAntes.map((s,i)=>`<div class="ph-wrap"><img src="${s}"><button class="del-ph-tpm" data-idx="${i}">✕</button></div>`).join("");
+  const lista=arr(S.tpm).map(t=>{
+    const fotosA=thumbs(t.fotos||[]);
+    const fotosD=thumbs((S.tpmDespues[t._key])||[]);
+    const esc=t.escalado===true;
+    const stBadge=esc?`<span class="badge b-esc"><i class="ti ti-arrow-up"></i>Escalado</span>`:
+      t.estado==="Finalizado"?`<span class="badge b-cerr"><i class="ti ti-check"></i>Finalizado ${t.horaFin}</span>`:
+      `<span class="badge b-proc"><i class="ti ti-player-play"></i>En curso ${t.horaInicio}</span>`;
+    const acts=t.estado!=="Finalizado"&&!esc?`
+      <div class="tpm-acts">
+        <label class="btn sm ghost" style="cursor:pointer"><input type="file" accept="image/*" multiple style="display:none" data-tpm-key="${t._key}" class="ph-despues"><i class="ti ti-camera"></i>Foto al finalizar</label>
+        <button class="btn sm teal" data-finalizar="${t._key}"><i class="ti ti-check"></i>Finalizar</button>
+        <button class="btn sm red" data-escalar="${t._key}"><i class="ti ti-arrow-up"></i>Escalar</button>
+      </div>`:
+      esc?`<div style="font-size:11px;color:#A32D2D;margin-top:6px"><i class="ti ti-alert-triangle" style="font-size:11px"></i> ${t.motivoEscalada||"—"}</div>`:"";
+    return`<div class="tpm-item">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div><div class="tpm-title">${t.equipo} — ${t.tipo}</div>
+        <div class="tpm-sub"><i class="ti ti-user" style="font-size:10px"></i> ${t.operador}${t.turno?" · "+t.turno:""} · ${t.fecha}</div>
+        ${t.nOrden?`<div style="margin-top:4px"><span class="orden-badge"><i class="ti ti-file-description" style="font-size:10px"></i>Orden: ${t.nOrden}</span></div>`:""}
+        ${t.descripcion?`<div class="tpm-sub" style="margin-top:2px">${t.descripcion}</div>`:""}</div>
+        <div>${stBadge}</div>
+      </div>
+      ${fotosA?`<div style="font-size:10px;color:var(--text-sec);margin-top:6px;margin-bottom:2px">Antes:</div>${fotosA}`:""}
+      ${fotosD?`<div style="font-size:10px;color:var(--text-sec);margin-top:6px;margin-bottom:2px">Después:</div>${fotosD}`:""}
+      ${acts}
+    </div>`;
+  }).join("")||`<div class="empty"><i class="ti ti-tool"></i><p>Sin actividades TPM registradas</p></div>`;
+  return`
+  <div class="card">
+    <div class="ct"><i class="ti ti-tool"></i>Nueva actividad TPM</div>
+    <div class="frow">
+      <div class="fg"><label>Operador responsable</label><input id="tpm-op" placeholder="Nombre..."></div>
+      <div class="fg"><label>Turno</label><select id="tpm-turno"><option value="">Seleccionar...</option>${turnoOpts}</select></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Zona / Equipo</label><input id="tpm-equipo" placeholder="Ej: Elevador #3..."></div>
+      <div class="fg"><label>Tipo de actividad</label><select id="tpm-tipo"><option value="">Seleccionar...</option>${tipoOpts}</select></div>
+    </div>
+    <div class="frow">
+      <div class="fg highlight-field"><label><i class="ti ti-file-description" style="font-size:11px"></i> N° de orden / Solicitud</label><input id="tpm-norden" placeholder="Ej: 052358" style="font-weight:500;letter-spacing:1px"></div>
+      <div class="fg"><label>Descripción</label><input id="tpm-desc" placeholder="Qué se realizará..."></div>
+    </div>
+    <span class="field-label"><i class="ti ti-camera" style="font-size:12px"></i> Foto antes de iniciar</span>
+    <div class="photo-zone" id="phZoneTPM"><input type="file" id="ph-tpm" accept="image/*" multiple style="display:none"><i class="ti ti-photo"></i><p>Estado inicial del equipo</p></div>
+    <div class="photo-previews" id="prevTPM">${prevHtml}</div>
+    <button class="btn acc full" style="margin-top:10px" id="btnTPM"><i class="ti ti-player-play"></i>Registrar inicio de actividad</button>
+  </div>
+  <div>${lista}</div>`;
+}
+
+function bindTPMEvents(){
+  document.getElementById("phZoneTPM")?.addEventListener("click",()=>document.getElementById("ph-tpm").click());
+  document.getElementById("ph-tpm")?.addEventListener("change",e=>addFotos(e,"tpm"));
+  document.querySelectorAll(".del-ph-tpm").forEach(b=>{
+    b.addEventListener("click",()=>{S.tpmAntes.splice(parseInt(b.dataset.idx),1);renderTab("tpm")});
+  });
+  document.getElementById("btnTPM")?.addEventListener("click",iniciarTPM);
+  document.querySelectorAll("[data-finalizar]").forEach(b=>b.addEventListener("click",()=>finalizarTPM(b.dataset.finalizar)));
+  document.querySelectorAll("[data-escalar]").forEach(b=>b.addEventListener("click",()=>escalarTPM(b.dataset.escalar)));
+  document.querySelectorAll(".ph-despues").forEach(inp=>{
+    inp.addEventListener("change",e=>{
+      const key=inp.dataset.tpmKey;
+      if(!S.tpmDespues[key])S.tpmDespues[key]=[];
+      Array.from(e.target.files).forEach(f=>{
+        const r=new FileReader();r.onload=ev=>{S.tpmDespues[key].push(ev.target.result);renderTab("tpm")};r.readAsDataURL(f);
+      });
+    });
+  });
+}
+
+async function iniciarTPM(){
+  const op=document.getElementById("tpm-op")?.value.trim();
+  if(!op){toast("Ingresa el operador","warn");return}
+  const equipo=document.getElementById("tpm-equipo")?.value.trim();
+  if(!equipo){toast("Ingresa el equipo","warn");return}
+  const tipo=document.getElementById("tpm-tipo")?.value;
+  if(!tipo){toast("Selecciona el tipo","warn");return}
+  const btn=document.getElementById("btnTPM");
+  btn.disabled=true;btn.innerHTML=`<i class="ti ti-loader-2 spin"></i>Guardando...`;
+  const row={
+    fecha:hoy(),isoFecha:new Date().toISOString(),
+    operador:op,turno:document.getElementById("tpm-turno")?.value||"",
+    nOrden:document.getElementById("tpm-norden")?.value.trim()||"",
+    equipo,tipo,descripcion:document.getElementById("tpm-desc")?.value.trim()||"",
+    estado:"En curso",horaInicio:ahora(),horaFin:"",
+    escalado:false,motivoEscalada:"",
+    fotos:S.tpmAntes.length>0?S.tpmAntes:[],
+  };
+  try{
+    await push(ref(db,"tpm"),row);
+    S.tpmAntes=[];toast("✓ Actividad TPM iniciada");renderTab("tpm");
+  }catch(e){toast("Error: "+e.message,"err");btn.disabled=false;btn.innerHTML=`<i class="ti ti-player-play"></i>Registrar inicio de actividad`}
+}
+
+async function finalizarTPM(key){
+  const fotos=S.tpmDespues[key]||[];
+  try{
+    await update(ref(db,"tpm/"+key),{estado:"Finalizado",horaFin:ahora(),fotosDespues:fotos});
+    delete S.tpmDespues[key];
+    toast("✓ Actividad finalizada");
+  }catch(e){toast("Error: "+e.message,"err")}
+}
+
+async function escalarTPM(key){
+  const motivo=prompt("¿Por qué se escala a mantenimiento?");
+  if(motivo===null)return;
+  try{
+    await update(ref(db,"tpm/"+key),{escalado:true,motivoEscalada:motivo||"Sin descripción",estado:"Escalado"});
+    toast("Escalado a mantenimiento");
+  }catch(e){toast("Error: "+e.message,"err")}
+}
+
+// ── HALLAZGOS ─────────────────────────────────────────────────
+function renderHallazgos(){
+  const lista=arr(S.hallazgos).map(h=>{
+    const col=catColor(h.cat);
+    const fotos=thumbs(h.fotos||[]);
+    return`<div class="h-item">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div class="h-title">${h.zona}${h.equipo?" — "+h.equipo:""}</div>
+          <div class="h-desc">${h.descripcion}</div>
+          <div class="h-reporter"><i class="ti ti-user" style="font-size:10px"></i> ${h.reportadoPor}${h.turno?" · "+h.turno:""} · ${h.fecha}</div>
+          <div class="h-meta">
+            <span class="badge" style="background:${col.bg};color:${col.text}">${h.catNombre}</span>
+            ${bSev(h.prioridad)} ${bEst(h.estatus)}
+            ${h.nOrden?`<span class="orden-badge"><i class="ti ti-file-description" style="font-size:10px"></i>${h.nOrden}</span>`:""}
+          </div>
+          ${h.responsable?`<div style="font-size:10px;color:var(--text-sec);margin-top:3px"><i class="ti ti-user-check" style="font-size:10px"></i> ${h.responsable}${h.fechaCierre?" · Cierre: "+h.fechaCierre:""}</div>`:""}
+          ${fotos}
+        </div>
+      </div>
+      <div class="h-acts">
+        <button class="a-btn" onclick="setEst('${h._key}','En proceso')"><i class="ti ti-player-play"></i>En proceso</button>
+        <button class="a-btn" onclick="setEst('${h._key}','Cerrado')"><i class="ti ti-check"></i>Cerrar</button>
+        <button class="a-btn" onclick="delH('${h._key}')"><i class="ti ti-trash"></i>Eliminar</button>
+      </div>
+    </div>`;
+  }).join("")||`<div class="empty"><i class="ti ti-clipboard-x"></i><p>Sin hallazgos registrados</p></div>`;
+  return`<div>${lista}</div>`;
+}
+
+window.setEst=async(key,est)=>{
+  try{await update(ref(db,"hallazgos/"+key),{estatus:est});toast("Estatus: "+est)}catch(e){toast("Error","err")}
+};
+window.delH=async(key)=>{
+  if(!confirm("¿Eliminar este hallazgo?"))return;
+  try{await remove(ref(db,"hallazgos/"+key));toast("Eliminado")}catch(e){toast("Error","err")}
+};
+
+// ── MINUTA ────────────────────────────────────────────────────
+function renderMinuta(){
+  const fechaHoy=new Date().toLocaleDateString("es-MX",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  const pend=arr(S.hallazgos).filter(h=>h.estatus!=="Cerrado");
+  const items=pend.map((h,i)=>{
+    const col=catColor(h.cat);
+    return`<div class="min-item">
+      <div class="min-num">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500">${h.zona} — <span style="color:${col.text}">${h.catNombre}</span>
+          ${h.nOrden?`<span class="orden-badge" style="margin-left:6px"><i class="ti ti-file-description" style="font-size:10px"></i>${h.nOrden}</span>`:""}
+        </div>
+        <div style="font-size:11px;color:var(--text-sec);margin-top:2px;line-height:1.4">${h.descripcion.length>80?h.descripcion.slice(0,80)+"…":h.descripcion}</div>
+        <div style="margin-top:4px;display:flex;gap:5px;align-items:center">${bSev(h.prioridad)}<span style="font-size:10px;color:var(--text-sec)">Reportó: ${h.reportadoPor}${h.turno?" · "+h.turno:""}</span></div>
+        <div class="min-fields">
+          <div class="min-field"><label><i class="ti ti-user" style="font-size:10px"></i> Responsable</label>
+            <input type="text" value="${h.responsable||""}" placeholder="Asignar..." onblur="saveResp('${h._key}',this.value)"></div>
+          <div class="min-field"><label><i class="ti ti-calendar" style="font-size:10px"></i> Fecha de cierre acordada</label>
+            <input type="date" value="${h.fechaCierre||""}" onchange="saveFecha('${h._key}',this.value)"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join("")||`<div class="empty"><i class="ti ti-circle-check"></i><p>Sin hallazgos pendientes</p></div>`;
+  const esc=arr(S.tpm).filter(t=>t.escalado===true);
+  const escHtml=esc.length?`
+    <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border)">
+      <div class="ct" style="margin-bottom:.5rem"><i class="ti ti-arrow-up"></i>Escalados a mantenimiento</div>
+      ${esc.map(t=>`<div class="min-item">
+        <div class="min-num"><i class="ti ti-tool" style="font-size:10px"></i></div>
+        <div><div style="font-size:12px;font-weight:500">${t.equipo} — ${t.tipo}
+          ${t.nOrden?`<span class="orden-badge" style="margin-left:6px"><i class="ti ti-file-description" style="font-size:10px"></i>${t.nOrden}</span>`:""}
+        </div>
+        <div style="font-size:11px;color:var(--text-sec)">${t.operador} · Motivo: ${t.motivoEscalada||"—"}</div></div>
+      </div>`).join("")}
+    </div>`:"";
+  return`<div class="card">
+    <div class="ct"><span><i class="ti ti-notes"></i>Minuta — ${fechaHoy.charAt(0).toUpperCase()+fechaHoy.slice(1)}</span>
+      <button class="btn sm teal" onclick="exportar()"><i class="ti ti-download"></i>Exportar</button>
+    </div>
+    ${items}${escHtml}
+  </div>`;
+}
+
+window.saveResp=async(key,v)=>{
+  try{await update(ref(db,"hallazgos/"+key),{responsable:v.trim()});if(v.trim())toast("Responsable: "+v.trim())}catch(e){}
+};
+window.saveFecha=async(key,v)=>{
+  try{await update(ref(db,"hallazgos/"+key),{fechaCierre:v});if(v)toast("Fecha: "+v)}catch(e){}
+};
+
+window.exportar=()=>{
+  const pend=arr(S.hallazgos).filter(h=>h.estatus!=="Cerrado");
+  const esc=arr(S.tpm).filter(t=>t.escalado===true);
+  const f=new Date().toLocaleDateString("es-MX");
+  let txt=`MINUTA DIARIA DE HALLAZGOS — AGRIPAC\n${f}\n${"─".repeat(50)}\n\n`;
+  pend.forEach((h,i)=>{
+    txt+=`${i+1}. [${(h.prioridad||"").toUpperCase()}] ${h.zona} — ${h.catNombre}\n`;
+    if(h.nOrden) txt+=`   N° Orden: ${h.nOrden}\n`;
+    txt+=`   Descripción: ${h.descripcion}\n`;
+    txt+=`   Reportado por: ${h.reportadoPor}${h.turno?" ("+h.turno+")":""}\n`;
+    if(h.accion)txt+=`   Acción: ${h.accion}\n`;
+    txt+=`   Responsable: ${h.responsable||"Por asignar"}\n`;
+    txt+=`   Fecha cierre: ${h.fechaCierre||"Por definir"}\n`;
+    txt+=`   Estatus: ${h.estatus}\n\n`;
+  });
+  if(esc.length){
+    txt+=`ESCALADOS A MANTENIMIENTO\n${"─".repeat(50)}\n`;
+    esc.forEach((t,i)=>{
+      txt+=`${i+1}. ${t.equipo} — ${t.tipo}\n`;
+      if(t.nOrden)txt+=`   N° Orden: ${t.nOrden}\n`;
+      txt+=`   Operador: ${t.operador}\n   Motivo: ${t.motivoEscalada||"—"}\n\n`;
+    });
+  }
+  const a=document.createElement("a");
+  a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(txt);
+  a.download=`minuta_${f.replace(/\//g,"-")}.txt`;a.click();
+  toast("Minuta exportada");
+};
+
+// ── SEGUIMIENTO ───────────────────────────────────────────────
+function renderSeguimiento(){
+  const hs=arr(S.hallazgos);
+  const tot=hs.length, cerr=hs.filter(h=>h.estatus==="Cerrado").length;
+  const pct=tot?Math.round(cerr/tot*100):0;
+  const lista=hs.map(h=>`<div class="seg-item">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div>
+        <div style="font-size:13px;font-weight:500">${h.zona}${h.equipo?" — "+h.equipo:""}
+          ${h.nOrden?`<span class="orden-badge" style="margin-left:6px;font-size:9px"><i class="ti ti-file-description" style="font-size:9px"></i>${h.nOrden}</span>`:""}
+        </div>
+        <div style="font-size:10px;color:var(--text-sec);margin-top:2px">${h.catNombre} · ${h.reportadoPor}${h.responsable?" → "+h.responsable:""}${h.fechaCierre?" · Cierre: "+h.fechaCierre:""}</div>
+      </div>
+      ${bSev(h.prioridad)}
+    </div>
+    <div class="st-btns">
+      <button class="st-btn ${h.estatus==="Pendiente"?"st-pend":""}" onclick="setEst('${h._key}','Pendiente')">Pendiente</button>
+      <button class="st-btn ${h.estatus==="En proceso"?"st-proc":""}" onclick="setEst('${h._key}','En proceso')">En proceso</button>
+      <button class="st-btn ${h.estatus==="Cerrado"?"st-cerr":""}" onclick="setEst('${h._key}','Cerrado')">Cerrado</button>
+    </div>
+  </div>`).join("")||`<div class="empty"><i class="ti ti-chart-line"></i><p>Sin datos aún</p></div>`;
+  return`
+  <div class="seg-item" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;font-weight:500">Progreso general del área</div>
+      <span class="badge ${pct===100?"b-cerr":"b-proc"}">${pct}%</span>
+    </div>
+    <div style="font-size:11px;color:var(--text-sec);margin-top:3px">${cerr} de ${tot} cerrados · ${tot-cerr} activos</div>
+    <div class="pb-wrap"><div class="pb" style="width:${pct}%"></div></div>
+  </div>${lista}`;
+}
+
+// ── Fotos ─────────────────────────────────────────────────────
+function addFotos(evt,bucket){
+  Array.from(evt.target.files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      if(bucket==="lev") S.levFotos.push(e.target.result);
+      else S.tpmAntes.push(e.target.result);
+      renderTab(S.tab);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────
+setTimeout(()=>{
+  if(document.getElementById("content").innerHTML.includes("Conectando"))
+    renderTab("lev");
+},3000);
+</script>
+</body>
+</html>
